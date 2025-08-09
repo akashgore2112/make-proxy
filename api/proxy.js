@@ -1,36 +1,43 @@
+import fetch from 'node-fetch';
+
 export default async function handler(req, res) {
-  // ✅ Allow only POST requests
+  console.log('📩 Incoming Request:', req.method, req.url);
+  console.log('Request Body:', req.body);
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    console.log('❌ Invalid method');
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    // Make.com webhook URL (replace with your actual webhook)
-    const MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/ik3wo488gl7eeqh5uzo97fks1myos34m";
+    const webhookUrl = 'https://hook.eu2.make.com/XXXXXXXXXXXX'; // Apna Make.com webhook URL yaha daalo
 
-    // Forward the request body to Make.com webhook
-    const response = await fetch(MAKE_WEBHOOK_URL, {
+    console.log('🔗 Forwarding to Make Webhook:', webhookUrl);
+
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(req.body), // Body ko stringify karna zaruri hai
     });
 
-    // If Make.com returns a non-OK status
-    if (!response.ok) {
-      const errorText = await response.text();
-      return res.status(response.status).json({ error: errorText });
+    console.log('📤 Webhook Status:', response.status);
+
+    const textData = await response.text(); // Pehle text lo taaki JSON error parse avoid ho
+    console.log('📥 Webhook Response:', textData);
+
+    let jsonData;
+    try {
+      jsonData = JSON.parse(textData);
+    } catch (err) {
+      jsonData = { raw: textData };
     }
 
-    // Parse the response from Make.com
-    const data = await response.json();
-
-    // ✅ Send Make.com response back to GPT
-    return res.status(200).json(data);
+    return res.status(response.status).json(jsonData);
 
   } catch (error) {
-    console.error("Proxy request failed:", error);
-    return res.status(500).json({ error: "Proxy request failed" });
+    console.error('🔥 Proxy Error:', error);
+    return res.status(500).json({ error: 'Proxy request failed', details: error.message });
   }
 }
