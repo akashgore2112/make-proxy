@@ -1,6 +1,8 @@
 export default async function handler(req, res) {
   try {
-    const makeResponse = await fetch(process.env.MAKE_WEBHOOK_URL, {
+    const makeWebhookUrl = "https://hook.eu2.make.com/ik3wo488gl7eeqh5uzo97fks1myos34m"; // Apna Make.com webhook URL
+
+    const makeResponse = await fetch(makeWebhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(req.body),
