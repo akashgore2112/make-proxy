@@ -1,18 +1,26 @@
 export default async function handler(req, res) {
-  try {
-    const makeWebhookUrl = "https://hook.eu2.make.com/ik3wo488gl7eeqh5uzo97fks1myos34m"; // Apna Make.com webhook URL
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-    const makeResponse = await fetch(makeWebhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body),
+  try {
+    // Yaha apna Make.com webhook ka exact URL dalna
+    const webhookUrl = "https://hook.eu2.make.com/ik3wo488gl7eeqh5uzo97fks1myos34m";
+
+    // Make.com ko request bhejna
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(req.body)
     });
 
-    const data = await makeResponse.json();
-    res.status(200).json(data);
+    const data = await response.json().catch(() => ({}));
 
+    return res.status(response.status).json(data);
   } catch (error) {
     console.error("Proxy error:", error);
-    res.status(500).json({ error: "Proxy request failed" });
+    return res.status(500).json({ error: 'Proxy request failed' });
   }
 }
